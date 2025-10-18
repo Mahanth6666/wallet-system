@@ -2,6 +2,30 @@
 #include <iostream>
 #include <bits/stdc++.h>
 using namespace std;
+int generateotp() {
+    return 1000 + rand() % 9000; 
+}
+
+bool verifyotp() {
+    int otp = generateotp();
+    cout << "Your OTP is: " << otp << endl;
+    int entered;
+    int attempts = 3;
+    
+    while(attempts--) {
+        cout << "Enter OTP: ";
+        cin >> entered;
+        if(entered == otp) {
+            cout << "OTP Verified Successfully!" << endl;
+            return true;
+        } else {
+            cout << "Incorrect OTP. ";
+            if(attempts > 0) cout << "Try again." << endl;
+        }
+    }
+    cout << "Failed to verify OTP." << endl;
+    return false;
+}
 class user{
     public:
         string name;
@@ -129,6 +153,50 @@ class wallet{
             user_list[id].dispban();
             user_list[id].dispwal();
         }
+        void transfer(int senderID, int receiverID, int wb, int amount) {
+            user &sender = user_list[senderID];
+            user &receiver = user_list[receiverID];
+        
+            if (wb == 1) 
+            { // Wallet transfer
+                if (sender.wallet_balance >= amount) {
+                    sender.wallet_balance -= amount;
+                    receiver.wallet_balance += amount;
+        
+                    sender.walv.push_back(amount);
+                    sender.walv2.push_back("TRANSFER TO USER " + to_string(receiverID));
+                    sender.wd.push_back("DEBIT");
+        
+                    receiver.walv.push_back(amount);
+                    receiver.walv2.push_back("TRANSFER FROM USER " + to_string(senderID));
+                    receiver.wd.push_back("CREDIT");
+        
+                    cout << "Wallet transfer successful!" << endl;
+                } 
+                else {
+                    cout << "Insufficient wallet balance!" << endl;
+                }
+            } 
+            else { // Bank transfer
+                if (sender.bank_bal >= amount) {
+                    sender.bank_bal -= amount;
+                    receiver.bank_bal += amount;
+        
+                    sender.banv.push_back(amount);
+                    sender.banv2.push_back("TRANSFER TO USER " + to_string(receiverID));
+                    sender.bd.push_back("DEBIT");
+        
+                    receiver.banv.push_back(amount);
+                    receiver.banv2.push_back("TRANSFER FROM USER " + to_string(senderID));
+                    receiver.bd.push_back("CREDIT");
+        
+                    cout << "Bank transfer successful!" << endl;
+                } else {
+                    cout << "Insufficient bank balance!" << endl;
+                }
+            }
+        }
+
         void addbankabal(int id,int cas){
             user &uu=user_list[id];
             uu.bank_bal=uu.bank_bal+cas;
@@ -173,6 +241,7 @@ class wallet{
 };
 int main() {
     wallet wal;
+    srand(time(0));
     int c1,tof,ag,ph,id,c2,cc,wb,c3,rup;
     string na;
     bool x;
@@ -201,20 +270,20 @@ int main() {
                     x=true;
                     while(x)
                     {
-                        cout<<"ENTER 1 TO MANAGE BANK,2 TO LOGOUT,3 TO SPEND,4 TO VIEW LOG,5 FOR ADD POINTS\n";
+                        cout<<"ENTER 1 TO MANAGE BANK,2 TO LOGOUT,3 TO SPEND,4 TO VIEW LOG,5 FOR ADD POINTS,6 FOR TRANSFER\n";
                         
                         cin>>c2;
                         switch(c2)
                         {
                             case 1:
                                 cout<<"ENTER 1 TO ADD BALANCE,2 TO TAKE CASE\n";
-                                cout<<endl;
+                                
                                 cin>>c3;
                                 switch(c3)
                                 {
                                     case 1:
                                         cout<<"Enter cash to deposit: \n";
-                                        cout<<endl;
+                                        
                                         cin>>cc;
                                         wal.addbankabal(id,cc);
                                         break;
@@ -237,13 +306,32 @@ int main() {
                                 cin>>wb;
                                 cout<<"ENTER RUPEES";
                                 cin>>rup;
-                                wal.spend(id,tof,wb,rup);
+                                if(verifyotp()) {
+                                    wal.spend(id, tof, wb, rup); 
+                                } else {
+                                    cout << "Transaction cancelled due to OTP failure." << endl;
+                                }
                                 break;
                             case 4:
                                 wal.displog(id);
                                 break;
                             case 5:
                                 wal.claimpoints(id);
+                                break;
+                            case 6: 
+                                int recID, amount, wbChoice;
+                                cout << "Enter receiver ID: ";
+                                cin >> recID;
+                                cout << "Use Wallet(1) or Bank(2): ";
+                                cin >> wbChoice;
+                                cout << "Enter amount: ";
+                                cin >> amount;
+                                if(verifyotp()){
+                                wal.transfer(id, recID, wbChoice, amount);
+                                }
+                                else{
+                                    cout<<"OTP VERIFICATION FAILED";
+                                }
                                 break;
                         }
                     }
@@ -261,4 +349,3 @@ int main() {
 
     return 0;
 }
-Added wallet management system code
